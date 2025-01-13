@@ -9,12 +9,14 @@ from random import shuffle
 from pm4py.util import constants
 import random
 import simpy
-import pm4py.objects.log.log as log_instance
-from pm4py.objects.petri import semantics
+from pm4py.objects.petri_net import semantics
+import pm4py.objects.log.util.log as log_instance
+# import pm4py.objects.log.log as log_instance
 from pm4py.util import xes_constants
 import sys, importlib
 import methods
-from pm4py.statistics.traces.log.case_arrival import get_case_arrival_avg
+# from pm4py.statistics.traces.log.case_arrival import get_case_arrival_avg
+from pm4py.statistics.traces.generic.log.case_arrival import get_case_arrival_avg
 from pm4py.util.business_hours import BusinessHours
 
 importlib.reload(sys.modules['methods'])
@@ -53,7 +55,7 @@ def discover_process_model():
 
 def relevant_info_generator(net, initial_marking, final_marking, log):
     """
-               
+
                 Parameters
                 --------------
                 net
@@ -66,7 +68,7 @@ def relevant_info_generator(net, initial_marking, final_marking, log):
                     The input events in the form of a log
 
                 """
-       
+
     simulation_of_events(log, net, initial_marking)
 
 
@@ -83,7 +85,7 @@ def simulation_of_events(log, net, initial_marking):
     random.seed(41)  # This helps reproducing the results
 
     # Create an environment and start the setup process
-    env = simpy.Environment()    
+    env = simpy.Environment()
 
     print("Please enter no of cases to be generated")
     no_traces = int(input())
@@ -110,11 +112,10 @@ def setup(log, env, no_traces, net, initial_marking):
     else:
         case_arrival_time = get_case_arrival_avg(log)
 
-
     casegen = methods.Trace(env)
 
     # Create more cases while the simulation is running
-    for i in range(1, no_traces+1):        
+    for i in range(1, no_traces + 1):
         yield env.timeout(case_arrival_time)
         env.process(simulation(env, 'Case %d' % i, casegen, net, initial_marking, no_traces))
 
@@ -133,7 +134,7 @@ def simulation(env, case_num, case, net, initial_marking, no_traces):
     thewriter = csv.writer(f)
     thewriter.writerow(['case_id', 'activity', 'time:timestamp'])
     curr_timestamp = datetime.now()
-    log = log_instance.EventLog()    
+    log = log_instance.EventLog()
     trace = log_instance.Trace()
     trace.attributes[case_id_key] = str(case_num.replace('Case', ''))
     marking = copy(initial_marking)
